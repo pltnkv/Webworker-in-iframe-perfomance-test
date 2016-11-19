@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        canvas {
+            border: 1px solid #666;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<br/>
+<button id="btn0">f1</button>
+<button id="btn1">f2</button>
+<button id="btn2">f3</button>
+<!--<button id="btn2">Run test with 50 iframes+webworker</button>-->
+
+<script>
+    var testCase = 0; //0|1|2
+
+    document.getElementById('btn0').addEventListener('click', runTest0)
+    document.getElementById('btn1').addEventListener('click', runTest1)
+    document.getElementById('btn2').addEventListener('click', runTest2)
+
+    function hideButtons() {
+        document.getElementById('btn0').style.display = 'none'
+        document.getElementById('btn1').style.display = 'none'
+        document.getElementById('btn2').style.display = 'none'
+    }
+
+    function runTest0() {
+        testCase = 0
+        hideButtons()
+        createCanvas()
+    }
+
+    function runTest1() {
+        testCase = 1
+        hideButtons()
+        createCanvas()
+        createIFrame()
+    }
+
+    function runTest2() {
+        testCase = 2
+        hideButtons()
+        createCanvas()
+        createIFrame()
+        for (var i = 0; i < 50; i++) {
+            createIFrame2()
+        }
+    }
+
+    //////////////////////////////////////////////////////////
+    /// tests
+    //////////////////////////////////////////////////////////
+
+    function doTest(pointX, pointY, dragging) {
+        var point = {
+            x: pointX,
+            y: pointY,
+            dragging: dragging
+        }
+        switch (testCase) {
+            case 0: //simple
+                pointsData.push(point)
+                break
+            case 1: // 1 iframe + webworker
+                sendMessage(point)
+                break
+            case 2: // 50 iframes + webworker
+                sendMessage(point)
+                break
+        }
+
+    }
+
+    function createIFrame() {
+        var el = document.createElement("iframe")
+        document.body.appendChild(el)
+        el.style.display = 'none'
+        el.src = 'http://192.168.88.214:8080/iframe.html?rand=' + Math.random()
+
+        window.addEventListener("message", function listener(event) {
+            pointsData.push(event.data)
+        })
+    }
+
+    function createIFrame2() {
+        var el = document.createElement("iframe")
+        document.body.appendChild(el)
+        el.style.display = 'none'
+        el.src = 'http://192.168.88.214:8080/iframe2.html?rand=' + Math.random()
+    }
+
+    function sendMessage(newPointData) {
+        for (var i = 0; i < window.frames.length; i++) {
+            var frame = window.frames[i];
+            frame.postMessage({action: 'onDraw', data: newPointData}, '*')
+        }
+    }
+
+    //////////////////////////////////////////////////////////
+    /// drawing
+    //////////////////////////////////////////////////////////
+
+    var pointsData = []
+    var canvas;
+    var ctx;
+
+    function createCanvas() {
+        canvas = document.getElementById('canvas')
+        ctx = canvas.getContext('2d');
+        canvas.width = document.body.clientWidth - 10
+        canvas.height = document.body.clientHeight - 100
+        attachCanvasEvents()
+        redraw()
+    }
+
+    function attachCanvasEvents() {
+        canvas.addEventListener('mousedown', onMouseDown)
+    }
+
+    function onMouseDown(e) {
+        document.addEventListener('mouseup', onMouseUp)
+        document.addEventListener('mousemove', onMouseMove)
+
+        doTest(e.pageX, e.pageY)
+    }
+
+    function onMouseUp() {
+        document.removeEventListener('mouseup', onMouseUp)
+        document.removeEventListener('mousemove', onMouseMove)
+    }
+
+    function onMouseMove(e) {
+        doTest(e.pageX, e.pageY, true)
+    }
+
+    function redraw() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clears the canvas
+
+        ctx.strokeStyle = "#df4b26";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 5;
+
+        for (var i = 0; i < pointsData.length; i++) {
+            var point = pointsData[i]
+            ctx.beginPath();
+            if (point.dragging && i) {
+                ctx.moveTo(pointsData[i - 1].x, pointsData[i - 1].y);
+            } else {
+                ctx.moveTo(point.x, point.y);
+            }
+            ctx.lineTo(point.x, point.y);
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        requestAnimationFrame(redraw)
+    }
+
+    //    runTest1()
+
+</script>
+
+<script src="js/main.js"></script>
+</body>
+</html>

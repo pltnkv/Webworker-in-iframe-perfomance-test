@@ -1,0 +1,18 @@
+<html>
+<body>
+<script>
+    var worker = new Worker("js/worker.js")
+    worker.onmessage = function (e) {
+        window.parent.postMessage(e.data, '*')
+    }
+
+    window.addEventListener("message", function listener(event) {
+        switch (event.data.action) {
+            case 'onDraw':
+                worker.postMessage(event.data.data)
+                break;
+        }
+    })
+</script>
+</body>
+</html>
