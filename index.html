@@ -22,7 +22,6 @@
 <button id="btn0">Run without iframes and webworkers</button>
 <button id="btn1">Run with 1 iframe+webworker</button>
 <button id="btn2">Run with 1 main iframes+webworker and 30 listenres</button>
-<!--<button id="btn2">Run test with 50 iframes+webworker</button>-->
 
 <script>
     var testCase = 0; //0|1|2
@@ -88,7 +87,7 @@
         var el = document.createElement("iframe")
         document.body.appendChild(el)
         el.style.display = 'none'
-        el.src = 'http://192.168.88.214:8080/iframe.html?rand=' + Math.random()
+        el.src = 'iframe.html?rand=' + Math.random()
 
         window.addEventListener("message", function listener(event) {
             pointsData.push(event.data)
@@ -99,7 +98,7 @@
         var el = document.createElement("iframe")
         document.body.appendChild(el)
         el.style.display = 'none'
-        el.src = 'http://192.168.88.214:8080/iframe2.html?rand=' + Math.random()
+        el.src = 'iframe2.html?rand=' + Math.random()
     }
 
     function sendMessage(newPointData) {
