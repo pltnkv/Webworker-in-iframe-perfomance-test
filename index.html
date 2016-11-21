@@ -19,8 +19,8 @@
 
 <canvas id="canvas"></canvas>
 <br/>
-<button id="btn0">Run without iframes and webworkers</button>
-<button id="btn1">Run with 1 iframe+webworker</button>
+<button id="btn0">Run without iframes and webworkers</button><br>
+<button id="btn1">Run with 1 iframe+webworker</button><br>
 <button id="btn2">Run with 1 main iframes+webworker and 30 listenres</button>
 
 <script>
@@ -76,7 +76,7 @@
             case 1: // 1 iframe + webworker
                 sendMessage(point)
                 break
-            case 2: // 50 iframes + webworker
+            case 2: // n iframes + webworker
                 sendMessage(point)
                 break
         }
@@ -121,11 +121,17 @@
         ctx = canvas.getContext('2d');
         canvas.width = document.body.clientWidth - 10
         canvas.height = document.body.clientHeight - 100
-        attachCanvasEvents()
+        var isTouchSupported = 'ontouchstart' in document
+        if (isTouchSupported) {
+            attachTouchEvents()
+        } else {
+            attachMouseEvents()
+        }
+
         redraw()
     }
 
-    function attachCanvasEvents() {
+    function attachMouseEvents() {
         canvas.addEventListener('mousedown', onMouseDown)
     }
 
@@ -143,6 +149,29 @@
 
     function onMouseMove(e) {
         doTest(e.pageX, e.pageY, true)
+    }
+
+    function attachTouchEvents() {
+        canvas.addEventListener('touchstart', onTouchStart)
+    }
+
+    function onTouchStart(e) {
+        document.addEventListener('touchend', onTouchEnd)
+        document.addEventListener('touchmove', onTouchMove)
+
+        var touch = e.touches[0]
+        doTest(touch.clientX, touch.clientY)
+        e.preventDefault()
+    }
+
+    function onTouchEnd() {
+        document.addEventListener('touchend', onTouchEnd)
+        document.addEventListener('touchmove', onTouchMove)
+    }
+
+    function onTouchMove(e) {
+        var touch = e.touches[0]
+        doTest(touch.clientX, touch.clientY, true)
     }
 
     function redraw() {
@@ -167,11 +196,6 @@
 
         requestAnimationFrame(redraw)
     }
-
-    //    runTest1()
-
 </script>
-
-<script src="js/main.js"></script>
 </body>
 </html>
